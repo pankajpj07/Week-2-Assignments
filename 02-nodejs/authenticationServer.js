@@ -29,9 +29,55 @@
   Testing the server - run `npm run test-authenticationServer` command in terminal
  */
 
-const express = require("express")
+const express = require("express");
 const PORT = 3000;
 const app = express();
+app.use(express.json());
+
+let users = [];
+
+app.get("/signup", (req, res) => {
+  res.sendFile(__dirname + "/files/c.html");
+});
+app.post("/signup", (req, res) => {
+  const user = req.body;
+  let isUserPresent = users.some((prev) => prev.email === user.email);
+  if (!isUserPresent) {
+    users.push(user);
+    res.status(201).send("Signup successful");
+  } else {
+    res.sendStatus(400);
+  }
+});
+
+app.post("/login", (req, res) => {
+  const user = req.body;
+  let userPresent = users.find(
+    (prev) => prev.email === user.email && prev.password === user.password
+  );
+
+  if (userPresent) {
+    const { password, ...rest } = userPresent;
+    res.json(rest);
+  } else {
+    res.sendStatus(401);
+  }
+});
+
+app.get("/data", (req, res) => {
+  const email = req.headers.email;
+  const password = req.headers.password;
+  let userPresent = users.find(
+    (prev) => prev.email === email && prev.password === password
+  );
+  if (userPresent) {
+    res.json({ users });
+  } else {
+    res.status(401).send("Unauthorized");
+  }
+});
+
 // write your logic here, DONT WRITE app.listen(3000) when you're running tests, the tests will automatically start the server
 
+// app.listen(PORT, () => console.log("Server is listering on ", PORT));
 module.exports = app;
